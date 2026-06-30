@@ -9,8 +9,6 @@ import os
 header, polygons, dimensions = read_file("octahedron0.stl")
 # header, polygons, dimensions = read_file("tetrahedron0.stl")
 # header, polygons, dimensions = read_file("cube.stl")
-# header, polygons, dimensions = read_file("flashlight73.stl")
-# header, polygons, dimensions = read_file("_ОСНОВА ШУСТРИК3 ФУТБОЛ 20042026 (1).stl")
 # header, polygons, dimensions = read_file("sphere.stl")
 
 
