@@ -4,7 +4,6 @@ import cv2, numpy
 import sys
 
 def render(polygons, d, c, width=100, height=80, camera=Vector(1,1,1), chars=()):
-    # plt.cla()
 
 
     def draw_triangle(x1,y1,z1,x2,y2,z2,x3,y3,z3):
@@ -82,11 +81,6 @@ def render(polygons, d, c, width=100, height=80, camera=Vector(1,1,1), chars=())
         p1z=camera*Vector(polygon.p1.x-c.x, polygon.p1.y-c.y, polygon.p1.z-c.z)
         p2z=camera*Vector(polygon.p2.x-c.x, polygon.p2.y-c.y, polygon.p2.z-c.z)
         p3z=camera*Vector(polygon.p3.x-c.x, polygon.p3.y-c.y, polygon.p3.z-c.z)
-        # plt.scatter(p1x, p1y, s=10*(d+p1z)/d, c='red')
-        # plt.scatter(p2x, p2y, s=10*(d+p2z)/d, c='red')
-        # plt.scatter(p3x, p3y, s=10*(d+p3z)/d, c='red')
-        # plt.scatter(d*width/min(width, height)/2, d*height/min(width, height)/2, s=10, c='red')
-        # plt.scatter(-d*width/min(width, height)/2, -d*height/min(width, height)/2, s=10, c='red')
         draw_triangle(p1x, p1y, p1z, p2x, p2y, p2z, p3x, p3y, p3z)
         
     
@@ -105,5 +99,3 @@ def render(polygons, d, c, width=100, height=80, camera=Vector(1,1,1), chars=())
     sys.stdout.write(string)
     sys.stdout.flush()
 
-    # plt.show()
-    # plt.pause(0.001)
