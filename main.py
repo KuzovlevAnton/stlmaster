@@ -42,7 +42,7 @@ if sum([len(i) for i in parts]) != len(polygons):
     print(f"получено {len(polygons)} разделено {sum([len(i) for i in parts])} граней")
 
 
-HoleFixer.fix(parts[0], graph) # временно тест
+print(HoleFixer.fix(parts[0], graph)) # временно тест
 
 
 

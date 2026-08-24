@@ -1,11 +1,117 @@
+from classes import Vector
+
+
 class HoleFixer:
 
     @staticmethod
     def fix(polygons, graph):
         boundary_edges_clusters = HoleFixer.find_boundary_edges(polygons, graph)
-        for i in boundary_edges_clusters:
-            print(i)
-        return boundary_edges_clusters
+
+
+    @staticmethod
+    def triangles_intersect(triangle_a, triangle_b):
+        # доделать поиск нахождения пересечения + проверить то, что есть
+    
+    @staticmethod
+    def project_intersections(triangle_a, triangle_b):
+        point_0 = Vector(triangle_b[0][0], triangle_b[0][1], triangle_b[0][2])
+        point_1 = Vector(triangle_b[1][0], triangle_b[1][1], triangle_b[1][2])
+        point_2 = Vector(triangle_b[2][0], triangle_b[2][1], triangle_b[2][2])
+
+        edge1 = point_1 - point_0
+        edge2 = point_2 - point_0
+
+        normal = Vector(
+            edge1.y * edge2.z - edge1.z * edge2.y,
+            edge1.z * edge2.x - edge1.x * edge2.z,
+            edge1.x * edge2.y - edge1.y * edge2.x
+        )
+        normal.normalize()
+
+        basis_u = Vector(edge1.x, edge1.y, edge1.z)
+        basis_u.normalize()
+
+        basis_v = Vector(
+            normal.y * basis_u.z - normal.z * basis_u.y,
+            normal.z * basis_u.x - normal.x * basis_u.z,
+            normal.x * basis_u.y - normal.y * basis_u.x
+        )
+        basis_v.normalize()
+
+        def to_2d(point):
+            v = Vector(point[0] - point_0.x, point[1] - point_0.y, point[2] - point_0.z)
+            u_coord = v * basis_u
+            v_coord = v * basis_v
+            return (u_coord, v_coord)
+
+        b_2d = [to_2d(triangle_b[0]), to_2d(triangle_b[1]), to_2d(triangle_b[2])]
+
+        intersections_2d = []
+
+        for i in range(3):
+            pa = Vector(triangle_a[i][0], triangle_a[i][1], triangle_a[i][2])
+            pb = Vector(triangle_a[(i + 1) % 3][0], triangle_a[(i + 1) % 3][1], triangle_a[(i + 1) % 3][2])
+
+            da = (pa - point_0) * normal
+            db = (pb - point_0) * normal
+
+            if da * db < 0 or abs(da) < 1e-12 or abs(db) < 1e-12:
+                t = -da / (db - da) if abs(db - da) > 1e-12 else 0.0
+                if 0.0 <= t <= 1.0:
+                    px = pa.x + t * (pb.x - pa.x)
+                    py = pa.y + t * (pb.y - pa.y)
+                    pz = pa.z + t * (pb.z - pa.z)
+                    intersections_2d.append(to_2d((px, py, pz)))
+
+        return b_2d, intersections_2d
+
+    @staticmethod
+    def sort_boundary_clusters(boundary_edges_clusters):
+        sorted_clusters = []
+        
+        for cluster in boundary_edges_clusters:
+            if not cluster:
+                continue
+            
+            sorted_cluster = [cluster[0]]
+            remaining = cluster[1:].copy()
+            
+            while remaining:
+                last_edge = sorted_cluster[-1]
+                last_point = last_edge[1]
+
+                found = False
+                for i, edge in enumerate(remaining):
+                    point_0, point_1 = edge
+                    
+                    if point_0 == last_point:
+                        sorted_cluster.append(edge)
+                        remaining.pop(i)
+                        found = True
+                        break
+                    elif point_1 == last_point:
+                        sorted_cluster.append((point_1, point_0))
+                        remaining.pop(i)
+                        found = True
+                        break
+
+                if not found:
+                    sorted_cluster.extend(remaining)
+                    print(f"⚠️ Предупреждение: разрыв цепочки в кластере! Не найдено ребро для точки {last_point}")
+                    break
+            
+            sorted_clusters.append(sorted_cluster)
+        
+        return sorted_clusters
+        
+    @staticmethod
+    def find_vertex_neighbours(vertex, polygons):
+        neighbours = []
+        for polygon in polygons:
+            point_0, point_1, point_2 = polygon
+            if vertex == point_0 or vertex == point_1 or vertex == point_2:
+                neighbours.append(polygon)
+        return neighbours
 
     @staticmethod
     def find_boundary_edges(polygons, graph):
