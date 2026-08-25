@@ -1,16 +1,52 @@
 from classes import Vector
-
+from math import acos
 
 class HoleFixer:
 
     @staticmethod
     def fix(polygons, graph):
         boundary_edges_clusters = HoleFixer.find_boundary_edges(polygons, graph)
+        boundary_edges_clusters = HoleFixer.sort_boundary_clusters(boundary_edges_clusters)
+        print(boundary_edges_clusters)
+
+
+
+    @staticmethod
+    def get_angle(point1, vertex, point2):
+        side1_square = (point1[0]-vertex[0])**2+(point1[1]-vertex[1])**2+(point1[2]-vertex[2])**2
+        side2_square = (vertex[0]-point2[0])**2+(vertex[1]-point2[1])**2+(vertex[2]-point2[2])**2
+        back_side_square = (point1[0]-point2[0])**2+(point1[1]-point2[1])**2+(point1[2]-point2[2])**2
+        angle_cos = (side1_square+side2_square-back_side_square)/2/(side1_square*side2_square)**0.5
+        return acos(angle_cos)
 
 
     @staticmethod
     def triangles_intersect(triangle_a, triangle_b):
-        # доделать поиск нахождения пересечения + проверить то, что есть
+        return HoleFixer.triangle_includes(triangle_a, triangle_b) or HoleFixer.triangle_includes(triangle_b, triangle_a)
+
+    @staticmethod
+    def triangle_includes(triangle_a, triangle_b):
+        triangle, points = HoleFixer.project_intersections(triangle_a, triangle_b)
+        if not points:
+            return False
+        x1,y1=triangle[0]
+        x2,y2=triangle[1]
+        x3,y3=triangle[2]
+        vector1=Vector((x2-x1-((x2-x1)*(x3-x2)+(y2-y1)*(y3-y2))*(x3-x2)/((x3-x2)**2+(y3-y2)**2)), (y2-y1-((x2-x1)*(x3-x2)+(y2-y1)*(y3-y2))*(y3-y2)/((x3-x2)**2+(y3-y2)**2)), 0)
+        vector2=Vector((x1-x2-((x1-x2)*(x3-x1)+(y1-y2)*(y3-y1))*(x3-x1)/((x3-x1)**2+(y3-y1)**2)), (y1-y2-((x1-x2)*(x3-x1)+(y1-y2)*(y3-y1))*(y3-y1)/((x3-x1)**2+(y3-y1)**2)), 0)
+        vector3=Vector((x1-x3-((x1-x3)*(x2-x1)+(y1-y3)*(y2-y1))*(x2-x1)/((x2-x1)**2+(y2-y1)**2)), (y1-y3-((x1-x3)*(x2-x1)+(y1-y3)*(y2-y1))*(y2-y1)/((x2-x1)**2+(y2-y1)**2)), 0)
+        
+        # hx = x1 - (x1*(x2-x1) + y1*(y2-y1)) * (x2-x1) / ((x2-x1)² + (y2-y1)²)
+        # hy = y1 - (x1*(x2-x1) + y1*(y2-y1)) * (y2-y1) / ((x2-x1)² + (y2-y1)²)
+
+        for point in points:
+            vector = Vector(point[0], point[1], 0)
+            if 0 <= (((vector1)*(vector-Vector(x1,y1,0)))/abs(vector1)) <= abs(vector1) and \
+                0 <= (((vector2)*(vector-Vector(x2,y2,0)))/abs(vector2)) <= abs(vector2) and \
+                0 <= (((vector3)*(vector-Vector(x3,y3,0)))/abs(vector3)) <= abs(vector3):
+                return True
+        return False
+
     
     @staticmethod
     def project_intersections(triangle_a, triangle_b):
@@ -63,6 +99,7 @@ class HoleFixer:
                     pz = pa.z + t * (pb.z - pa.z)
                     intersections_2d.append(to_2d((px, py, pz)))
 
+
         return b_2d, intersections_2d
 
     @staticmethod
@@ -83,6 +120,24 @@ class HoleFixer:
                 found = False
                 for i, edge in enumerate(remaining):
                     point_0, point_1 = edge
+
+                    if point_0 == sorted_cluster[0][0] and point_1 == last_point:
+                        sorted_cluster.append((point_1, point_0))
+                        remaining.pop(i)
+                        found = True
+                        sorted_clusters.append(sorted_cluster)
+                        if remaining:
+                            sorted_cluster = [remaining[0]]
+                        break
+
+                    if point_1 == sorted_cluster[0][0] and point_0 == last_point:
+                        sorted_cluster.append(edge)
+                        remaining.pop(i)
+                        found = True
+                        sorted_clusters.append(sorted_cluster)
+                        if remaining:
+                            sorted_cluster = [remaining[0]]
+                        break
                     
                     if point_0 == last_point:
                         sorted_cluster.append(edge)
@@ -94,12 +149,13 @@ class HoleFixer:
                         remaining.pop(i)
                         found = True
                         break
+                    
 
                 if not found:
                     sorted_cluster.extend(remaining)
                     print(f"⚠️ Предупреждение: разрыв цепочки в кластере! Не найдено ребро для точки {last_point}")
                     break
-            
+                
             sorted_clusters.append(sorted_cluster)
         
         return sorted_clusters
@@ -178,5 +234,4 @@ class HoleFixer:
             clusters.append(cluster)
         
         return clusters
-
 
