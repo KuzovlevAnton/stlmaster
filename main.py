@@ -43,7 +43,16 @@ if sum([len(i) for i in parts]) != len(polygons):
 
 
 print(HoleFixer.fix(parts[0], graph)) # временно тест
+a=((-1, -1, -1), (1,-1,-1), (0,2,0))
+b=((-1, 1, -1), (1,1,-1), (0,1,1))
+print(HoleFixer.triangles_intersect(a, b)) # временно тест
+print(HoleFixer.get_angle(a[1], a[0], a[2]))
+print(HoleFixer.get_angle(a[0], a[1], a[2]))
+print(HoleFixer.get_angle(a[1], a[2], a[0]))
 
+print(HoleFixer.get_angle(a[1], a[0], a[2])+
+HoleFixer.get_angle(a[0], a[1], a[2])+
+HoleFixer.get_angle(a[1], a[2], a[0]))
 
 
 print("done")
@@ -66,7 +75,6 @@ else:
     os.mkdir(path+name+str(number))
     for part_n in range(len(parts)):
         Writer.write(parts[part_n], f"{path}{name}{str(number)}/{name}{str(part_n+1)}.stl", f"{name}{str(part_n+1)}")
-
 
 
 
